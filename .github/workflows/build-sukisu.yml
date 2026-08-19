@@ -1,0 +1,45 @@
+name: Build SukiSU Kernel (TB128FU)
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi \
+            libncurses-dev bison flex bc libssl-dev zip git curl
+
+      - name: Apply SukiSU (non-GKI)
+        run: |
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
+
+      - name: Build kernel
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          make O=out ARCH=arm64 LLVM=1 \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+            tb128fu_defconfig
+          make O=out ARCH=arm64 LLVM=1 \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+            -j$(nproc)
+
+      - name: List build output
+        run: ls -la out/arch/arm64/boot/
+
+      - name: Upload kernel image
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image-gz
+          path: out/arch/arm64/boot/Image*
+          if-no-files-found: error
