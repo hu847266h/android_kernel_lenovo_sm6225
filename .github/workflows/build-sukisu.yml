@@ -13,9 +13,14 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            clang-14 lld-14 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi flex bison bc libssl-dev
+          sudo apt-get update -o Acquire::Retries=5 || sudo apt-get update -o Acquire::Retries=5
+          for i in 1 2 3; do
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+              -o Acquire::Retries=5 -o Acquire::http::Timeout=120 -o Acquire::https::Timeout=120 \
+              clang-14 lld-14 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi flex bison bc libssl-dev \
+              && break
+            sleep 15
+          done
           clang-14 --version | head -2 || true
 
       - name: Apply SukiSU (non-GKI)
