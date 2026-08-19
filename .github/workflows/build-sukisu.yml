@@ -15,18 +15,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi flex bison bc libssl-dev lld
+            clang-14 lld-14 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi flex bison bc libssl-dev
+          clang-14 --version | head -2 || true
 
       - name: Apply SukiSU (non-GKI)
         run: |
           curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 
-      - name: Fix config for newer toolchain
+      - name: Fix config for toolchain
         run: |
           sed -i 's/^CONFIG_USB_NET_AX8817X=y/# CONFIG_USB_NET_AX8817X is not set/' arch/arm64/configs/tb128fu_defconfig
           sed -i 's/^CONFIG_USB_NET_AX88179_178A=y/# CONFIG_USB_NET_AX88179_178A is not set/' arch/arm64/configs/tb128fu_defconfig
           sed -i 's/^CONFIG_MODVERSIONS=y/# CONFIG_MODVERSIONS is not set/' arch/arm64/configs/tb128fu_defconfig
-          # build all leftover loadable modules in-kernel to drop .ko dependency
           sed -i 's/=m$/=y/' arch/arm64/configs/tb128fu_defconfig
 
       - name: Build kernel
@@ -34,20 +34,20 @@ jobs:
           export ARCH=arm64
           export SUBARCH=arm64
           make O=out ARCH=arm64 \
-            CC=aarch64-linux-gnu-gcc \
-            LD=ld.lld \
+            CC=clang-14 LD=ld.lld-14 \
+            CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
             tb128fu_defconfig
           make O=out ARCH=arm64 \
-            CC=aarch64-linux-gnu-gcc \
-            LD=ld.lld \
+            CC=clang-14 LD=ld.lld-14 \
+            CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
             olddefconfig
           make O=out ARCH=arm64 \
-            CC=aarch64-linux-gnu-gcc \
-            LD=ld.lld \
+            CC=clang-14 LD=ld.lld-14 \
+            CLANG_TRIPLE=aarch64-linux-gnu- \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
             -j$(nproc)
