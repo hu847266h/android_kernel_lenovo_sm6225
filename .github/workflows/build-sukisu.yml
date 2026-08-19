@@ -23,12 +23,9 @@ jobs:
           done
           clang-14 --version | head -2 || true
 
-      - name: Apply SukiSU (non-GKI)
-        run: |
-          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
-
       - name: Fix config for toolchain
         run: |
+          sed -i 's/^CONFIG_KSU=y/# CONFIG_KSU is not set/' arch/arm64/configs/tb128fu_defconfig
           sed -i 's/^CONFIG_USB_NET_AX8817X=y/# CONFIG_USB_NET_AX8817X is not set/' arch/arm64/configs/tb128fu_defconfig
           sed -i 's/^CONFIG_USB_NET_AX88179_178A=y/# CONFIG_USB_NET_AX88179_178A is not set/' arch/arm64/configs/tb128fu_defconfig
           sed -i 's/^CONFIG_MODVERSIONS=y/# CONFIG_MODVERSIONS is not set/' arch/arm64/configs/tb128fu_defconfig
