@@ -14,8 +14,8 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi \
-            flex bison bc libssl-dev libelf-dev libncurses-dev zip git curl
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi flex bison bc libssl-dev
 
       - name: Apply SukiSU (non-GKI)
         run: |
@@ -30,6 +30,11 @@ jobs:
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
             tb128fu_defconfig
+          make O=out ARCH=arm64 \
+            CC=aarch64-linux-gnu-gcc \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+            olddefconfig
           make O=out ARCH=arm64 \
             CC=aarch64-linux-gnu-gcc \
             CROSS_COMPILE=aarch64-linux-gnu- \
